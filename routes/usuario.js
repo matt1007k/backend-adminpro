@@ -9,7 +9,12 @@ var app = express();
 var Usuario = require('../models/usuario');
 
 app.get('/',(req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+
     Usuario.find({ }, 'nombre email img role')
+        .skip(desde)
+        .limit(5)
         .exec((error, usuarios) => {
             if ( error ) {
                 return res.status(500).json({
@@ -18,13 +23,19 @@ app.get('/',(req, res) => {
                     errors: error    
                  }); 
             } 
-            res.status(200).json({
-                ok: true,
-                usuarios   
-            });     
+
+            Usuario.count({}, (error, conteo) =>{
+                res.status(200).json({
+                    ok: true,
+                    usuarios, 
+                    total: conteo 
+                }); 
+            });
+                
         });
     
 });
+
 
 app.put('/:id', mdAutenticacion.verificaToken, (req, res) =>{
     var id = req.params.id;
